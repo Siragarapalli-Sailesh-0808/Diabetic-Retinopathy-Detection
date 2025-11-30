@@ -1,21 +1,8 @@
 {
-  "version": 2,
-  "buildCommand": "npm install && npm run build",
-  "outputDirectory": "build",
-  "devCommand": "npm start",
-  "installCommand": "npm install",
-  "framework": "create-react-app",
   "rewrites": [
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "github": {
-    "silent": true
-  },
-  "functions": {},
-  "env": {
-    "REACT_APP_API_URL": ""
-  }
+  ]
 }
