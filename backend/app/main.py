@@ -14,7 +14,8 @@ app = FastAPI(
 )
 
 # Get allowed origins from environment variable or use defaults
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else []
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+ALLOWED_ORIGINS = allowed_origins_env.split(",") if allowed_origins_env else []
 DEFAULT_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
