@@ -14,12 +14,15 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy backend directory
-COPY backend/ /app/
+# First copy just requirements.txt for better caching
+COPY backend/requirements.txt /app/requirements.txt
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
+
+# Now copy the entire backend directory
+COPY backend/ /app/
 
 # Create necessary directories
 RUN mkdir -p uploads models_saved data dataset
