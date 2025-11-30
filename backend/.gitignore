@@ -1,0 +1,44 @@
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Model files (can be large)
+*.h5
+*.pt
+*.pth
+
+# Environment variables
+.env
+
+# Dataset and uploads
+dataset/
+uploads/
+models_saved/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
