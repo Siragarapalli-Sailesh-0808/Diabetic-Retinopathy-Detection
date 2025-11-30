@@ -2,7 +2,7 @@ services:
   - type: web
     name: diabetic-retinopathy-backend
     env: docker
-    dockerfilePath: ./backend/Dockerfile
+    dockerfilePath: ./Dockerfile
     dockerContext: ./backend
     plan: free
     healthCheckPath: /health
@@ -13,4 +13,6 @@ services:
         generateValue: true
       - key: UPLOAD_DIR
         value: ./uploads
+      - key: PYTHONUNBUFFERED
+        value: 1
     autoDeploy: true
