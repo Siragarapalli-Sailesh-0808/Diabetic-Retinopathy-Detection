@@ -1,8 +1,9 @@
 services:
   - type: web
     name: diabetic-retinopathy-backend
-    env: docker
-    dockerfilePath: ./Dockerfile
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     plan: free
     healthCheckPath: /health
     envVars:
@@ -14,4 +15,6 @@ services:
         value: ./uploads
       - key: PYTHONUNBUFFERED
         value: 1
+      - key: PYTHON_VERSION
+        value: 3.11.0
     autoDeploy: true
