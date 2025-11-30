@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+*.db
+
+# Node
+node_modules/
+
+# Data
+data/
+dataset/
+uploads/
+
+# Models (will be generated on server)
+*.h5
+*.weights.h5

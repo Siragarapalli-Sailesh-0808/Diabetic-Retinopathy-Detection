@@ -169,6 +169,46 @@ This project is created for educational and research purposes.
 - TensorFlow and Keras communities
 - FastAPI and React communities
 
+## 🚀 Deployment
+
+This project can be deployed for FREE using:
+- **Backend**: Render (https://render.com)
+- **Frontend**: Vercel (https://vercel.com)
+
+### Quick Deploy
+
+1. **Deploy Backend to Render:**
+   - Sign up at https://render.com
+   - Connect your GitHub repository
+   - Select "Web Service" → Choose this repo
+   - Set Root Directory: `backend`
+   - Render will auto-detect the Dockerfile
+   - Click "Create Web Service"
+
+2. **Deploy Frontend to Vercel:**
+   - Sign up at https://vercel.com
+   - Import your GitHub repository
+   - Set Root Directory: `frontend`
+   - Framework: Create React App
+   - Click "Deploy"
+
+3. **Update Frontend API URL:**
+   - Edit `frontend/src/services/api.js`
+   - Change `API_BASE_URL` to your Render backend URL
+   - Push changes to GitHub
+
+📖 **Detailed deployment instructions:** See [DEPLOYMENT.md](DEPLOYMENT.md)
+
+---
+
+## 📂 Deployment Files
+
+This repository includes all necessary deployment configurations:
+- `backend/Dockerfile` - Docker container for backend
+- `render.yaml` - Render service configuration
+- `vercel.json` - Vercel deployment settings
+- `DEPLOYMENT.md` - Comprehensive deployment guide
+
 ## Contact
 
 For questions or support, please open an issue in the repository.

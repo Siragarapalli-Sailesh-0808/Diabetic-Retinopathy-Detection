@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: diabetic-retinopathy-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:///./dr_detection.db
+      - key: SECRET_KEY
+        generateValue: true
+      - key: UPLOAD_DIR
+        value: ./uploads
+    autoDeploy: true
