@@ -2,8 +2,7 @@ services:
   - type: web
     name: diabetic-retinopathy-backend
     env: docker
-    dockerfilePath: ./Dockerfile
-    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
     plan: free
     healthCheckPath: /health
     envVars:
