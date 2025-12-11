@@ -25,7 +25,7 @@ const Landing = () => {
           <div className="hero-content">
             <div className="hero-text">
               <h1 className="hero-title">
-                AI-Powered Diabetic Retinopathy Detection
+               GAN-Based Diabetic Retinopathy Detection
               </h1>
               <p className="hero-subtitle">
                 Early detection saves vision. Our advanced GAN-based deep learning system 
@@ -225,7 +225,8 @@ const Landing = () => {
           </div>
           
           <div className="footer-bottom">
-            <p>&copy; 2024 DR Detection System. This is a research tool, not a medical device.</p>
+            <p>&copy; 2025 GAN-Based DR Detection System. This is a research tool, not a medical device.</p>
+            <p>&copy; Developed By VIIT_Vizag_IT</p>
           </div>
         </div>
       </footer>

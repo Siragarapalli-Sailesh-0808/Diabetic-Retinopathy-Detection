@@ -19,11 +19,11 @@ print("Quick Training - Kaggle Retinal Dataset")
 print("=" * 70)
 
 # Use smaller subset for faster training
-TRAIN_SIZE = 150  # Use only 150 images for quick training
-VAL_SIZE = 30
-TEST_SIZE = 30
+TRAIN_SIZE = 100  # Reduced from 150
+VAL_SIZE = 20     # Reduced from 30
+TEST_SIZE = 20    # Reduced from 30
 BATCH_SIZE = 16
-VIT_EPOCHS = 20
+VIT_EPOCHS = 10   # Reduced from 20
 
 # Load dataset
 print("\nLoading dataset...")
@@ -79,15 +79,15 @@ print(f"\nFeatures extracted: {train_features.shape}")
 # Train ViT classifier
 print("\nTraining Vision Transformer...")
 vit_classifier = VisionTransformerClassifier(
-    input_dim=train_features.shape[1],
+    feature_dim=train_features.shape[1],
     num_classes=5,
     num_transformer_blocks=4,
     num_heads=8,
-    mlp_dim=256,
+    ff_dim=256,
     dropout_rate=0.1
 )
 
-vit_classifier.compile(
+vit_classifier.model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
     loss='sparse_categorical_crossentropy',
     metrics=['accuracy']
@@ -107,7 +107,7 @@ callbacks = [
     )
 ]
 
-history = vit_classifier.fit(
+history = vit_classifier.model.fit(
     train_features, train_labels,
     validation_data=(val_features, val_labels),
     epochs=VIT_EPOCHS,
@@ -122,12 +122,12 @@ print("\nSaved ViT classifier")
 
 # Evaluate
 print("\nEvaluating...")
-results = vit_classifier.evaluate(test_features, test_labels, verbose=1)
+results = vit_classifier.model.evaluate(test_features, test_labels, verbose=1)
 print(f"\nTest Loss: {results[0]:.4f}")
 print(f"Test Accuracy: {results[1]:.4f}")
 
 # Detailed metrics
-predictions = vit_classifier.predict(test_features)
+predictions = vit_classifier.model.predict(test_features)
 predicted_classes = np.argmax(predictions, axis=1)
 
 class_names = ["No_DR", "Mild", "Moderate", "Severe", "Proliferative_DR"]

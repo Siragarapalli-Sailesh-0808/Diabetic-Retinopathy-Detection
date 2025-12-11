@@ -108,6 +108,14 @@ async def predict_dr(
     try:
         pred_service = get_prediction_service()
         predicted_class, confidence, class_name, explanation = pred_service.predict(filepath)
+    except ValueError as e:
+        # Validation error - image is not a retinal image
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     except Exception as e:
         # Clean up file on error
         if os.path.exists(filepath):

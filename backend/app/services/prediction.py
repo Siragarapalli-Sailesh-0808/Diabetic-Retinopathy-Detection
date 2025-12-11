@@ -88,6 +88,15 @@ class PredictionService:
         # Extract features (feature extractor handles batch dimension internally)
         features = self.feature_extractor.extract_features(preprocessed)
         
+        # Get all class probabilities for debugging
+        probabilities = self.classifier.predict(features)
+        
+        # Log probabilities for debugging
+        print(f"\n=== Prediction Probabilities ===")
+        for i, prob in enumerate(probabilities[0]):
+            print(f"{self.CLASS_NAMES[i]}: {prob*100:.2f}%")
+        print(f"================================\n")
+        
         # Predict
         predicted_class, confidence = self.classifier.predict_class(features)
         
