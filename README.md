@@ -1,6 +1,14 @@
 # GAN-Driven Diabetic Retinopathy Detection System
 
+[![Deploy](https://github.com/Siragarapalli-Sailesh-0808/Diabetic-Retinopathy-Detection/actions/workflows/deploy.yml/badge.svg)](https://github.com/Siragarapalli-Sailesh-0808/Diabetic-Retinopathy-Detection/actions/workflows/deploy.yml)
+
 An AI-powered web application for detecting and classifying diabetic retinopathy stages using GAN-based deep learning models.
+
+## 🌐 Live Demo
+
+**Frontend:** [https://siragarapalli-sailesh-0808.github.io/Diabetic-Retinopathy-Detection](https://siragarapalli-sailesh-0808.github.io/Diabetic-Retinopathy-Detection)
+
+> **Note:** To use the full application, deploy the backend to Render following the instructions in [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Features
 

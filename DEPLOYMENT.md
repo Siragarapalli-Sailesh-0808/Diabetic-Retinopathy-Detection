@@ -22,6 +22,25 @@ This guide will help you deploy your application to production using free servic
 
 ---
 
+## 🚀 AUTOMATIC DEPLOYMENT (Recommended)
+
+This project is configured with GitHub Actions for automatic deployment!
+
+### Enable GitHub Pages:
+1. Go to your repository on GitHub
+2. Click **Settings** → **Pages**
+3. Under "Build and deployment", select **GitHub Actions**
+4. Push any changes to the `main` branch to trigger deployment
+
+### What happens automatically:
+- ✅ Frontend builds and deploys to GitHub Pages
+- ✅ Backend can be deployed to Render (manual setup required once)
+
+Your frontend will be live at:
+`https://siragarapalli-sailesh-0808.github.io/Diabetic-Retinopathy-Detection`
+
+---
+
 ## 📦 PART 1: Deploy Backend to Render (FREE)
 
 ### Step 1: Create Render Account

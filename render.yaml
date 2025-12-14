@@ -17,4 +17,6 @@ services:
         value: 1
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: ALLOWED_ORIGINS
+        value: https://siragarapalli-sailesh-0808.github.io,http://localhost:3000,http://localhost:5173
     autoDeploy: true
