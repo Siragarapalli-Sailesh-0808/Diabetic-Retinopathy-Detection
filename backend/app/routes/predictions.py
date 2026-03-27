@@ -121,7 +121,7 @@ async def predict_dr(
             os.remove(filepath)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Prediction model unavailable: {str(e)}"
+            detail=f"Prediction service unavailable: {str(e)}"
         )
     except Exception as e:
         # Clean up file on error
