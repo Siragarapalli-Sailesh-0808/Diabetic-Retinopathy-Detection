@@ -73,14 +73,18 @@ async def startup_event():
     finally:
         db.close()
     
-    # Try to load prediction service
-    try:
-        from .services.prediction import get_prediction_service
-        get_prediction_service()
-        print("Prediction service loaded successfully")
-    except Exception as e:
-        print(f"Warning: Could not load prediction service: {e}")
-        print("Please run train.py to train the model first")
+    # On constrained hosts (e.g., free tiers), preload can crash cold starts.
+    preload_models = os.getenv("LOAD_MODELS_ON_STARTUP", "false").lower() == "true"
+    if preload_models:
+        try:
+            from .services.prediction import get_prediction_service
+            get_prediction_service()
+            print("Prediction service loaded successfully")
+        except Exception as e:
+            print(f"Warning: Could not load prediction service: {e}")
+            print("Please run train.py to train the model first")
+    else:
+        print("Skipping model preload on startup (LOAD_MODELS_ON_STARTUP=false)")
 
 @app.get("/")
 async def root():

@@ -116,6 +116,13 @@ async def predict_dr(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+    except FileNotFoundError as e:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Prediction model unavailable: {str(e)}"
+        )
     except Exception as e:
         # Clean up file on error
         if os.path.exists(filepath):

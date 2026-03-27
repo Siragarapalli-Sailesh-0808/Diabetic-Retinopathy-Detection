@@ -1,15 +1,13 @@
 import os
 import sys
 import numpy as np
-from tensorflow import keras
 from typing import Tuple
-import json
 
 # Add training module to path
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
 from training.preprocessing import preprocess_image
-from training.feature_extractor import HybridCNNFeatureExtractor, preprocess_for_cnn
+from training.feature_extractor import HybridCNNFeatureExtractor
 from training.vit_classifier import VisionTransformerClassifier, MultiHeadSelfAttention, TransformerBlock
 
 class PredictionService:
@@ -41,29 +39,24 @@ class PredictionService:
     def _load_models(self):
         """Load the trained models"""
         try:
-            # Load feature extractor
             feature_extractor_path = os.path.join(self.models_dir, "feature_extractor.h5")
-            if os.path.exists(feature_extractor_path):
-                self.feature_extractor = HybridCNNFeatureExtractor()
-                self.feature_extractor.load(feature_extractor_path)
-                print(f"Loaded feature extractor from {feature_extractor_path}")
-            else:
-                print(f"Warning: Feature extractor not found at {feature_extractor_path}")
-                print("Creating new feature extractor (will use pre-trained CNN weights)")
-                self.feature_extractor = HybridCNNFeatureExtractor()
-            
-            # Load ViT classifier
             vit_path = os.path.join(self.models_dir, "vit_classifier.weights.h5")
-            if os.path.exists(vit_path):
-                # Create new model instance and load weights
-                self.classifier = VisionTransformerClassifier(num_classes=5, feature_dim=2560)
-                self.classifier.load(vit_path)
-                print(f"Loaded ViT classifier from {vit_path}")
-            else:
+
+            if not os.path.exists(feature_extractor_path) or not os.path.exists(vit_path):
                 raise FileNotFoundError(
-                    f"ViT classifier not found at {vit_path}. "
-                    "Please run train.py first to train the model."
+                    "Required model files are missing. "
+                    f"Expected: {feature_extractor_path} and {vit_path}. "
+                    "Please train models and redeploy with artifacts present."
                 )
+
+            # Only build heavy TensorFlow models when artifacts are present.
+            self.feature_extractor = HybridCNNFeatureExtractor()
+            self.feature_extractor.load(feature_extractor_path)
+            print(f"Loaded feature extractor from {feature_extractor_path}")
+
+            self.classifier = VisionTransformerClassifier(num_classes=5, feature_dim=2560)
+            self.classifier.load(vit_path)
+            print(f"Loaded ViT classifier from {vit_path}")
         
         except Exception as e:
             print(f"Error loading models: {e}")
