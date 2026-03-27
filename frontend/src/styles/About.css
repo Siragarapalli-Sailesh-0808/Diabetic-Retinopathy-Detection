@@ -1,0 +1,245 @@
+/* About Page Styles */
+
+.about-page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.about-content {
+  padding: 2rem 0 4rem;
+}
+
+.about-hero {
+  text-align: center;
+  padding: 3rem 0;
+  background: linear-gradient(135deg, #f8fbfd 0%, #ffffff 100%);
+  border-radius: var(--radius-lg);
+  margin-bottom: 3rem;
+}
+
+.about-hero h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.lead {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.content-section {
+  margin-bottom: 3rem;
+}
+
+.content-section h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px solid var(--primary-color);
+}
+
+.content-section p {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.content-section ul {
+  margin: 1rem 0 1rem 1.5rem;
+  list-style: disc;
+}
+
+.content-section li {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+/* Severity Grid */
+.severity-grid {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.severity-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.severity-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.severity-header {
+  padding: 1.25rem 1.5rem;
+  color: white;
+  font-weight: 600;
+}
+
+.severity-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.level-0 { background: linear-gradient(135deg, var(--success-color), #5aa85e); }
+.level-1 { background: linear-gradient(135deg, #81c784, #66bb6a); }
+.level-2 { background: linear-gradient(135deg, var(--warning-color), #f4b400); }
+.level-3 { background: linear-gradient(135deg, #ff9800, #f57c00); }
+.level-4 { background: linear-gradient(135deg, var(--danger-color), #d32f2f); }
+
+.severity-body {
+  padding: 1.5rem;
+}
+
+.severity-body p {
+  margin: 0;
+  line-height: 1.7;
+}
+
+/* Pipeline Detail */
+.pipeline-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.pipeline-step {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.step-number {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+  background: var(--bg-card);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+.step-content h3 {
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.step-content p {
+  margin-bottom: 0.75rem;
+}
+
+.step-content strong {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Disclaimer Section */
+.disclaimer-section {
+  margin-top: 4rem;
+}
+
+.disclaimer-box {
+  background: linear-gradient(135deg, #fff8e1 0%, #fff9c4 100%);
+  border: 2px solid var(--warning-color);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+}
+
+.disclaimer-box p {
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.disclaimer-box strong {
+  color: #f57f17;
+  font-weight: 600;
+}
+
+/* CTA Section */
+.cta-section {
+  text-align: center;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e8f4f8 100%);
+  padding: 3rem;
+  border-radius: var(--radius-lg);
+  margin-top: 4rem;
+}
+
+.cta-section h2 {
+  border: none;
+  margin-bottom: 1rem;
+}
+
+.cta-section p {
+  font-size: 1.125rem;
+  margin-bottom: 2rem;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .about-hero h1 {
+    font-size: 2rem;
+  }
+  
+  .lead {
+    font-size: 1.125rem;
+  }
+  
+  .content-section h2 {
+    font-size: 1.75rem;
+  }
+  
+  .pipeline-step {
+    flex-direction: column;
+  }
+  
+  .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+  
+  .cta-buttons {
+    flex-direction: column;
+  }
+  
+  .cta-buttons .btn {
+    width: 100%;
+  }
+}
