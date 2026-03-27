@@ -8,8 +8,6 @@ from typing import Tuple
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
 from training.preprocessing import preprocess_image
-from training.feature_extractor import HybridCNNFeatureExtractor
-from training.vit_classifier import VisionTransformerClassifier, MultiHeadSelfAttention, TransformerBlock
 
 class PredictionService:
     """Service for making DR predictions"""
@@ -42,6 +40,8 @@ class PredictionService:
         self.models_dir = models_dir
         self.feature_extractor = None
         self.classifier = None
+        self.feature_extractor_cls = None
+        self.classifier_cls = None
         self.fallback_mode = False
         self._load_models()
     
@@ -69,12 +69,19 @@ class PredictionService:
                 )
                 return
 
+            # Import TensorFlow-dependent modules only when real artifacts exist.
+            from training.feature_extractor import HybridCNNFeatureExtractor
+            from training.vit_classifier import VisionTransformerClassifier
+
+            self.feature_extractor_cls = HybridCNNFeatureExtractor
+            self.classifier_cls = VisionTransformerClassifier
+
             # Only build heavy TensorFlow models when artifacts are present.
-            self.feature_extractor = HybridCNNFeatureExtractor()
+            self.feature_extractor = self.feature_extractor_cls()
             self.feature_extractor.load(feature_extractor_path)
             print(f"Loaded feature extractor from {feature_extractor_path}")
 
-            self.classifier = VisionTransformerClassifier(num_classes=5, feature_dim=2560)
+            self.classifier = self.classifier_cls(num_classes=5, feature_dim=2560)
             self.classifier.load(vit_path)
             print(f"Loaded ViT classifier from {vit_path}")
         
