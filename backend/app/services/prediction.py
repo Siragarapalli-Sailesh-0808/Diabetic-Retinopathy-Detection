@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+import requests
 from typing import Tuple
 
 # Add training module to path
@@ -43,6 +44,16 @@ class PredictionService:
             feature_extractor_path = os.path.join(self.models_dir, "feature_extractor.h5")
             vit_path = os.path.join(self.models_dir, "vit_classifier.weights.h5")
 
+            os.makedirs(self.models_dir, exist_ok=True)
+
+            # Optional: fetch model artifacts from URLs for cloud hosts where large files are not in git.
+            feature_url = os.getenv("MODEL_FEATURE_EXTRACTOR_URL", "").strip()
+            vit_url = os.getenv("MODEL_VIT_WEIGHTS_URL", "").strip()
+            if feature_url and not os.path.exists(feature_extractor_path):
+                self._download_file(feature_url, feature_extractor_path)
+            if vit_url and not os.path.exists(vit_path):
+                self._download_file(vit_url, vit_path)
+
             if not os.path.exists(feature_extractor_path) or not os.path.exists(vit_path):
                 self.fallback_mode = True
                 print(
@@ -63,6 +74,17 @@ class PredictionService:
         except Exception as e:
             print(f"Error loading models: {e}")
             raise
+
+    def _download_file(self, url: str, destination: str):
+        """Download a file from URL to destination path."""
+        print(f"Downloading model artifact from: {url}")
+        with requests.get(url, stream=True, timeout=300) as response:
+            response.raise_for_status()
+            with open(destination, "wb") as f:
+                for chunk in response.iter_content(chunk_size=1024 * 1024):
+                    if chunk:
+                        f.write(chunk)
+        print(f"Saved model artifact to: {destination}")
     
     def predict(self, image_path: str) -> Tuple[int, float, str, str]:
         """
