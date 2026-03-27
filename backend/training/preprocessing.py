@@ -33,14 +33,14 @@ def is_retinal_image(image_path: str) -> tuple[bool, str]:
     total_pixels = img_gray.size
     dark_ratio = dark_pixels / total_pixels
     
-    # Retinal images usually have 15-50% dark background
-    if dark_ratio < 0.05:
+    # Retinal images usually have some dark background around the circular field of view.
+    if dark_ratio < 0.01:
         return False, "This doesn't appear to be a retinal image. Retinal images should have a dark background with a circular illuminated region showing the back of the eye"
     
     # Check 3: Color distribution - retinal images have reddish/orange tones
     mean_color = np.mean(img_rgb, axis=(0, 1))
-    # Red channel should be dominant in retinal images
-    if mean_color[0] < mean_color[2]:  # Red should be greater than Blue
+    # Red channel is often dominant in retinal images, but allow minor variations.
+    if mean_color[0] + 10 < mean_color[2]:
         return False, "Color distribution suggests this is not a retinal image. Retinal images typically have warm red/orange tones from blood vessels"
     
     # Check 4: Detect circular/oval regions (retinal images have circular field of view)
@@ -59,9 +59,10 @@ def is_retinal_image(image_path: str) -> tuple[bool, str]:
         maxRadius=height//2
     )
     
-    # If no circular region detected, might not be a retinal image
+    # Circle detection can fail on cropped/low-contrast images; only reject if other cues are also weak.
     if circles is None or len(circles[0]) == 0:
-        return False, "No circular retinal region detected. Please upload a proper retinal fundus photograph showing the circular field of view"
+        if dark_ratio < 0.02 and mean_color[0] < mean_color[1]:
+            return False, "No circular retinal region detected. Please upload a proper retinal fundus photograph showing the circular field of view"
     
     return True, ""
 

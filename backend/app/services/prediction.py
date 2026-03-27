@@ -79,25 +79,31 @@ class PredictionService:
                 raise RuntimeError("Models not loaded. Please check model files.")
 
         if self.fallback_mode:
-            preprocessed = preprocess_image(image_path, target_size=(224, 224))
+            preprocessed = preprocess_image(image_path, target_size=(224, 224), validate=False)
             mean_intensity = float(np.mean(preprocessed))
             std_intensity = float(np.std(preprocessed))
+            red_mean = float(np.mean(preprocessed[:, :, 0]))
+            green_mean = float(np.mean(preprocessed[:, :, 1]))
 
-            # Heuristic severity score based on contrast and darkness.
-            lesion_score = min(1.0, (std_intensity * 1.4) + ((1.0 - mean_intensity) * 0.6))
+            # Heuristic severity score based on darkness, contrast, and red/green balance.
+            brightness_term = float(np.clip((0.55 - mean_intensity) / 0.35, 0.0, 1.0))
+            contrast_term = float(np.clip((std_intensity - 0.12) / 0.22, 0.0, 1.0))
+            rg_balance = red_mean - green_mean
+            color_term = float(np.clip((rg_balance - 0.03) / 0.20, 0.0, 1.0))
+            lesion_score = (0.50 * contrast_term) + (0.35 * brightness_term) + (0.15 * color_term)
 
-            if lesion_score < 0.20:
+            if lesion_score < 0.18:
                 predicted_class = 0
-            elif lesion_score < 0.35:
+            elif lesion_score < 0.36:
                 predicted_class = 1
-            elif lesion_score < 0.50:
+            elif lesion_score < 0.56:
                 predicted_class = 2
-            elif lesion_score < 0.70:
+            elif lesion_score < 0.76:
                 predicted_class = 3
             else:
                 predicted_class = 4
 
-            confidence = float(min(0.90, 0.55 + lesion_score * 0.35))
+            confidence = float(0.52 + min(0.30, abs(lesion_score - 0.50) * 0.60))
             class_name = self.CLASS_NAMES[predicted_class]
             explanation = (
                 self.EXPLANATIONS[predicted_class]
