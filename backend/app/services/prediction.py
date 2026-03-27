@@ -13,6 +13,7 @@ from training.vit_classifier import VisionTransformerClassifier, MultiHeadSelfAt
 
 class PredictionService:
     """Service for making DR predictions"""
+    UNCERTAIN_CLASS = -1
     
     # Class names and descriptions
     CLASS_NAMES = {
@@ -30,6 +31,12 @@ class PredictionService:
         3: "Severe diabetic retinopathy with extensive hemorrhages and cotton-wool spots. Urgent ophthalmologist consultation recommended.",
         4: "Proliferative diabetic retinopathy with neovascularization. Immediate treatment required. High risk of vision loss without intervention."
     }
+
+    UNCERTAIN_LABEL = "Uncertain - Retake Image"
+    UNCERTAIN_EXPLANATION = (
+        "The model is not confident enough for a reliable stage decision. "
+        "Please upload a clearer, centered retinal fundus image or repeat capture."
+    )
     
     def __init__(self, models_dir: str = "./models_saved"):
         self.models_dir = models_dir
@@ -139,24 +146,47 @@ class PredictionService:
         # Extract features (feature extractor handles batch dimension internally)
         features = self.feature_extractor.extract_features(preprocessed)
         
-        # Get all class probabilities for debugging
+        # Get class probabilities and calibrate to reduce severe-class overprediction.
         probabilities = self.classifier.predict(features)
+        calibrated = self._calibrate_probabilities(probabilities)
+        probs = calibrated[0]
         
         # Log probabilities for debugging
         print(f"\n=== Prediction Probabilities ===")
-        for i, prob in enumerate(probabilities[0]):
+        for i, prob in enumerate(probs):
             print(f"{self.CLASS_NAMES[i]}: {prob*100:.2f}%")
         print(f"================================\n")
-        
-        # Predict
-        predicted_class, confidence = self.classifier.predict_class(features)
-        
-        predicted_class = int(predicted_class[0])
-        confidence = float(confidence[0])
+
+        # Predict from calibrated probabilities.
+        sorted_idx = np.argsort(probs)[::-1]
+        predicted_class = int(sorted_idx[0])
+        confidence = float(probs[sorted_idx[0]])
+        second_best = float(probs[sorted_idx[1]])
+        margin = confidence - second_best
+
+        uncertainty_threshold = float(os.getenv("PREDICTION_CONFIDENCE_THRESHOLD", "0.62"))
+        margin_threshold = float(os.getenv("PREDICTION_MARGIN_THRESHOLD", "0.08"))
+        if confidence < uncertainty_threshold or margin < margin_threshold:
+            return (
+                self.UNCERTAIN_CLASS,
+                confidence,
+                self.UNCERTAIN_LABEL,
+                self.UNCERTAIN_EXPLANATION,
+            )
+
         class_name = self.CLASS_NAMES[predicted_class]
         explanation = self.EXPLANATIONS[predicted_class]
         
         return predicted_class, confidence, class_name, explanation
+
+    def _calibrate_probabilities(self, probabilities: np.ndarray) -> np.ndarray:
+        """Apply lightweight class-wise calibration and renormalize probabilities."""
+        # Slightly downweight severe classes; upweight early classes to reduce false severe calls.
+        weights = np.array([1.06, 1.08, 1.00, 0.93, 0.87], dtype=np.float32)
+        calibrated = probabilities * weights
+        denom = np.sum(calibrated, axis=1, keepdims=True)
+        denom = np.where(denom == 0, 1.0, denom)
+        return calibrated / denom
 
 # Global prediction service instance
 prediction_service = None

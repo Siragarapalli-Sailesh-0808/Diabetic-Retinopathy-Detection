@@ -110,6 +110,7 @@ const Dashboard = () => {
 
   const getClassBadgeClass = (classNum) => {
     const classes = {
+      '-1': 'badge-warning',
       0: 'badge-success',
       1: 'badge-info',
       2: 'badge-warning',
@@ -117,6 +118,13 @@ const Dashboard = () => {
       4: 'badge-danger',
     };
     return classes[classNum] || 'badge-info';
+  };
+
+  const getClassLabel = (classNum) => {
+    if (Number(classNum) === -1) {
+      return 'Uncertain';
+    }
+    return `Class ${classNum}`;
   };
 
   const formatDate = (dateString) => {
@@ -314,7 +322,7 @@ const Dashboard = () => {
                           </div>
                           <div className="history-result">
                             <span className={`badge ${getClassBadgeClass(item.predicted_class)}`}>
-                              Class {item.predicted_class}
+                              {getClassLabel(item.predicted_class)}
                             </span>
                             <span className="confidence-text">
                               {(item.confidence * 100).toFixed(1)}% confidence
