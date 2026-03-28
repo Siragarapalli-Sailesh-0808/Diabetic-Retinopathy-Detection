@@ -181,6 +181,18 @@ class PredictionService:
                 self.UNCERTAIN_EXPLANATION,
             )
 
+        # Guardrail: only return severe/proliferative when evidence is clearly strong.
+        if predicted_class in (3, 4):
+            high_severity_threshold = float(os.getenv("SEVERE_CLASS_CONFIDENCE_THRESHOLD", "0.72"))
+            moderate_support = float(probs[1] + probs[2])
+            if confidence < high_severity_threshold or moderate_support > confidence:
+                return (
+                    self.UNCERTAIN_CLASS,
+                    confidence,
+                    self.UNCERTAIN_LABEL,
+                    self.UNCERTAIN_EXPLANATION,
+                )
+
         class_name = self.CLASS_NAMES[predicted_class]
         explanation = self.EXPLANATIONS[predicted_class]
         

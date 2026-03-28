@@ -10,6 +10,7 @@ import numpy as np
 import tensorflow as tf
 from pathlib import Path
 from datetime import datetime
+from sklearn.utils.class_weight import compute_class_weight
 
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -132,16 +133,26 @@ class ModelTrainer:
         
         # Initialize ViT classifier
         self.vit_classifier = VisionTransformerClassifier(
-            input_dim=train_features.shape[1],  # 2560 for hybrid CNN
+            feature_dim=train_features.shape[1],  # 2560 for hybrid CNN
             num_classes=5,
             num_transformer_blocks=4,
             num_heads=8,
-            mlp_dim=256,
+            ff_dim=256,
             dropout_rate=0.1
         )
+
+        # Handle class imbalance in DR datasets (usually many class 0 and fewer class 3/4).
+        unique_classes = np.unique(train_labels)
+        weights = compute_class_weight(
+            class_weight='balanced',
+            classes=unique_classes,
+            y=train_labels
+        )
+        class_weight = {int(cls): float(w) for cls, w in zip(unique_classes, weights)}
+        print(f"   Class weights: {class_weight}")
         
         # Compile model
-        self.vit_classifier.compile(
+        self.vit_classifier.model.compile(
             optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
             loss='sparse_categorical_crossentropy',
             metrics=['accuracy']
@@ -176,11 +187,12 @@ class ModelTrainer:
         print(f"   Validation: {len(val_features)} samples")
         print(f"   Epochs: {epochs}, Batch size: {batch_size}")
         
-        history = self.vit_classifier.fit(
+        history = self.vit_classifier.model.fit(
             train_features, train_labels,
             validation_data=(val_features, val_labels),
             epochs=epochs,
             batch_size=batch_size,
+            class_weight=class_weight,
             callbacks=callbacks,
             verbose=1
         )
@@ -199,7 +211,7 @@ class ModelTrainer:
         print("=" * 70)
         
         # Evaluate
-        results = self.vit_classifier.evaluate(test_features, test_labels, verbose=1)
+        results = self.vit_classifier.model.evaluate(test_features, test_labels, verbose=1)
         
         print(f"\n✅ Test Loss: {results[0]:.4f}")
         print(f"✅ Test Accuracy: {results[1]:.4f}")
@@ -244,8 +256,14 @@ def main():
     print("=" * 70 + "\n")
     
     # Configuration
-    DATA_DIR = "./data"
-    MODELS_DIR = "./models_saved"
+    seed = int(os.getenv("TRAIN_SEED", "42"))
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
+
+    DATA_DIR = os.getenv("DATA_DIR", "./data")
+    MODELS_DIR = os.getenv("MODELS_DIR", "./models_saved")
+    DATA_CSV_PATH = os.getenv("DATA_CSV_PATH", "").strip() or None
+    DATA_IMAGES_DIR = os.getenv("DATA_IMAGES_DIR", "").strip() or None
     
     BATCH_SIZE = 32
     VIT_EPOCHS = 50
@@ -255,7 +273,12 @@ def main():
     trainer = ModelTrainer(data_dir=DATA_DIR, models_dir=MODELS_DIR)
     
     # Step 1: Load dataset
-    trainer.load_dataset()
+    if DATA_CSV_PATH is not None or DATA_IMAGES_DIR is not None:
+        print("Using dataset paths from environment...")
+        trainer.dataset = RetinalDataset(data_dir=DATA_DIR, image_size=(224, 224))
+        trainer.dataset.load_from_csv(csv_path=DATA_CSV_PATH, images_dir=DATA_IMAGES_DIR)
+    else:
+        trainer.load_dataset()
     
     # Step 2: Split data
     train_paths, train_labels, val_paths, val_labels, test_paths, test_labels = \

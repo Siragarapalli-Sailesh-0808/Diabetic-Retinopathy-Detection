@@ -23,6 +23,21 @@ class RetinalDataset:
         3: "Severe",
         4: "Proliferative_DR"
     }
+
+    STRING_LABEL_MAP = {
+        "no_dr": 0,
+        "normal": 0,
+        "healthy": 0,
+        "mild": 1,
+        "mild_dr": 1,
+        "moderate": 2,
+        "moderate_dr": 2,
+        "severe": 3,
+        "severe_dr": 3,
+        "proliferative": 4,
+        "proliferative_dr": 4,
+        "pdr": 4,
+    }
     
     def __init__(self, data_dir: str = "./data", image_size: Tuple[int, int] = (224, 224)):
         """
@@ -58,12 +73,6 @@ class RetinalDataset:
         print(f"📊 Loaded CSV with {len(df)} entries")
         print(f"   Columns: {list(df.columns)[:10]}...")
         
-        # For RFMiD dataset, filter only DR cases
-        if 'DR' in df.columns:
-            print(f"   Filtering for Diabetic Retinopathy cases...")
-            df = df[df['DR'] == 1]
-            print(f"   Found {len(df)} DR cases")
-        
         # Auto-detect images directory
         if images_dir is None:
             # Common directory names - search recursively
@@ -79,38 +88,32 @@ class RetinalDataset:
             images_dir = Path(images_dir)
         
         print(f"   Images directory: {images_dir}")
+
+        image_col = self._detect_image_column(df)
+        label_col = self._detect_label_column(df)
+        if label_col is None:
+            raise ValueError(
+                "Could not find a severity label column (expected one of: "
+                "label/class/diagnosis/level/severity/dr_grade)."
+            )
+
+        print(f"   Using image column: {image_col}")
+        print(f"   Using label column: {label_col}")
         
         # Process each row
+        skipped = 0
         for idx, row in df.iterrows():
-            # For RFMiD dataset, use 'ID' column for image filename
-            if 'ID' in df.columns:
-                image_name = f"{row['ID']}.png"
-                # Since this is RFMiD dataset with binary DR labels, assign random severity (0-4)
-                # In practice, you'd need DR severity labels, not just binary presence
-                # For now, use a simple mapping based on ID
-                label = idx % 5  # Distribute across 5 DR severity classes
-            else:
-                # Try different column names for image filename
-                image_name = None
-                for col in ['image', 'filename', 'Image', 'Filename', 'img_path']:
-                    if col in df.columns:
-                        image_name = row[col]
-                        break
-                
-                if image_name is None:
-                    # Use first column as image name
-                    image_name = row[0]
-                
-                # Try different column names for label
-                label = None
-                for col in ['label', 'class', 'diagnosis', 'level', 'severity']:
-                    if col in df.columns:
-                        label = row[col]
-                        break
-                
-                if label is None:
-                    # Use second column as label
-                    label = row[1]
+            image_name = str(row[image_col]).strip()
+            label = row[label_col]
+
+            # Handle common ID-only naming conventions.
+            if Path(image_name).suffix == "":
+                image_name = f"{image_name}.png"
+
+            parsed_label = self._parse_label(label)
+            if parsed_label is None:
+                skipped += 1
+                continue
             
             # Find image file
             image_path = images_dir / image_name if images_dir else self.data_dir / image_name
@@ -125,20 +128,83 @@ class RetinalDataset:
             
             if image_path.exists():
                 self.image_paths.append(str(image_path))
-                # Convert label to integer if it's a string
-                if isinstance(label, str):
-                    # Map class names to integers
-                    label_lower = label.lower().replace(' ', '_').replace('-', '_')
-                    for class_id, class_name in self.CLASS_NAMES.items():
-                        if class_name.lower().replace('_', '') in label_lower:
-                            label = class_id
-                            break
-                self.labels.append(int(label))
+                self.labels.append(parsed_label)
+            else:
+                skipped += 1
+
+        if skipped:
+            print(f"⚠️  Skipped {skipped} rows due to invalid labels or missing images")
+
+        if len(self.image_paths) == 0:
+            raise ValueError(
+                "No valid labeled images were loaded. Ensure CSV contains severity labels in [0..4] "
+                "and image filenames that exist in the images directory."
+            )
+
+        unique_labels = sorted(set(self.labels))
+        if len(unique_labels) < 2:
+            raise ValueError(
+                f"Loaded labels contain only one class: {unique_labels}. "
+                "Training requires at least two classes."
+            )
         
         print(f"✅ Loaded {len(self.image_paths)} images")
         print(f"   Label distribution: {dict(pd.Series(self.labels).value_counts().sort_index())}")
         
         return self
+
+    def _detect_image_column(self, df: pd.DataFrame) -> str:
+        """Detect the most likely image filename/id column."""
+        candidates = ["image", "filename", "Image", "Filename", "img_path", "id_code", "ID", "id"]
+        for col in candidates:
+            if col in df.columns:
+                return col
+        return df.columns[0]
+
+    def _detect_label_column(self, df: pd.DataFrame) -> str | None:
+        """Detect severity label column; reject binary DR-only data for 5-class training."""
+        candidates = ["label", "class", "diagnosis", "level", "severity", "dr_grade", "grade"]
+        for col in candidates:
+            if col in df.columns:
+                return col
+
+        if "DR" in df.columns:
+            raise ValueError(
+                "CSV appears to contain only binary DR labels (`DR` column). "
+                "5-class training needs severity grades 0..4 (for example `diagnosis` or `level`)."
+            )
+
+        return None
+
+    def _parse_label(self, label) -> int | None:
+        """Parse label to class index in [0..4]. Returns None for invalid rows."""
+        if pd.isna(label):
+            return None
+
+        if isinstance(label, str):
+            clean = label.strip().lower().replace("-", "_").replace(" ", "_")
+            if clean in self.STRING_LABEL_MAP:
+                return self.STRING_LABEL_MAP[clean]
+
+            # Try loose contains mapping for labels like "moderate dr".
+            for key, value in self.STRING_LABEL_MAP.items():
+                if key in clean:
+                    return value
+
+            try:
+                label = int(float(clean))
+            except ValueError:
+                return None
+
+        try:
+            label_int = int(label)
+        except (TypeError, ValueError):
+            return None
+
+        if 0 <= label_int <= 4:
+            return label_int
+
+        return None
     
     def load_from_directory(self, split_by_folder: bool = True):
         """
